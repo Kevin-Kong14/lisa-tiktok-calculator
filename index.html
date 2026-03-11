@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LISA TikTok Calculator</title>
+
+<style>
+
+body{
+font-family: -apple-system,BlinkMacSystemFont;
+background:#f4f6fb;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:500px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+}
+
+label{
+font-weight:600;
+margin-top:10px;
+display:block;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:5px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:16px;
+}
+
+button{
+width:100%;
+margin-top:20px;
+padding:15px;
+border:none;
+border-radius:12px;
+background:#ff2d55;
+color:white;
+font-size:18px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.result{
+margin-top:20px;
+background:#f8f9ff;
+padding:15px;
+border-radius:12px;
+font-size:18px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>LISA TikTok Calculator</h1>
+
+<label>ราคาขายสินค้า</label>
+<input id="price" type="number">
+
+<label>ต้นทุนสินค้า</label>
+<input id="cost" type="number">
+
+<label>ค่าคอม Affiliate (%)</label>
+<input id="affiliate" type="number" value="10">
+
+<label>ค่าธรรมเนียม TikTok (%)</label>
+<input id="fee" type="number" value="5">
+
+<button onclick="calculate()">คำนวณกำไร</button>
+
+<div class="result" id="result">
+กำไรสุทธิจะแสดงตรงนี้
+</div>
+
+</div>
+
+<script>
+
+function calculate(){
+
+let price = parseFloat(document.getElementById("price").value) || 0
+let cost = parseFloat(document.getElementById("cost").value) || 0
+let affiliate = parseFloat(document.getElementById("affiliate").value) || 0
+let fee = parseFloat(document.getElementById("fee").value) || 0
+
+let affiliateCost = price * affiliate / 100
+let feeCost = price * fee / 100
+
+let profit = price - cost - affiliateCost - feeCost
+
+document.getElementById("result").innerHTML =
+`
+ราคาขาย: ${price} บาท<br>
+ต้นทุน: ${cost} บาท<br>
+ค่าคอม Affiliate: ${affiliateCost.toFixed(2)} บาท<br>
+ค่าธรรมเนียม TikTok: ${feeCost.toFixed(2)} บาท<br><br>
+
+<b>กำไรสุทธิ: ${profit.toFixed(2)} บาท</b>
+`
+
+}
+
+</script>
+
+</body>
+</html>
