@@ -3,181 +3,280 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISA Calculator V6</title>
+<title>LISA Calculator V7</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
+
 body{
-background:#0a0a0a;
-color:white;
-font-family:sans-serif;
-max-width:420px;
-margin:auto;
+font-family:Sarabun;
+background:#f4f6f8;
+margin:0;
 padding:20px;
 }
 
+.container{
+max-width:500px;
+margin:auto;
+}
+
 h1{
-font-size:22px;
+font-size:26px;
+text-align:center;
 margin-bottom:20px;
+}
+
+.card{
+background:white;
+padding:18px;
+border-radius:14px;
+margin-bottom:14px;
+box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+label{
+font-weight:600;
+font-size:14px;
 }
 
 input{
 width:100%;
-padding:14px;
-font-size:22px;
-border-radius:12px;
-border:none;
+padding:10px;
+font-size:18px;
+margin-top:4px;
 margin-bottom:12px;
-background:#111;
-color:white;
+border-radius:8px;
+border:1px solid #ddd;
 }
 
 button{
 width:100%;
 padding:14px;
-margin-top:8px;
-border-radius:12px;
+font-size:18px;
 border:none;
-font-size:16px;
+border-radius:10px;
+background:#ff2d55;
+color:white;
 font-weight:bold;
-cursor:pointer;
 }
 
-.calc{
+.vat{
+display:flex;
+gap:8px;
+margin-bottom:12px;
+}
+
+.vat button{
+background:#222;
+color:#aaa;
+font-size:14px;
+padding:10px;
+}
+
+.vat .active{
 background:#ff2d55;
 color:white;
 }
 
-.copy{
-background:#222;
-color:white;
-}
-
 .result{
-margin-top:20px;
-padding:16px;
-background:#111;
-border-radius:12px;
+font-size:22px;
+font-weight:700;
 }
 
-.good{color:#34d399}
-.bad{color:#ff6b6b}
-</style>
+.small{
+font-size:14px;
+color:#666;
+}
 
+.controls{
+display:flex;
+gap:8px;
+margin-top:10px;
+}
+
+.controls button{
+background:#444;
+font-size:14px;
+}
+
+</style>
 </head>
 
 <body>
 
-<h1>✦ LISA Calculator V6</h1>
+<div class="container">
 
-<input id="ref" type="number" placeholder="ราคาอ้างอิง">
+<h1>LISA Calculator</h1>
 
-<button class="calc" onclick="calc()">คำนวณราคา</button>
+<div class="card">
 
-<div id="result" class="result" style="display:none">
+<label>Reference Price</label>
+<input id="ref" type="number">
 
-<div>ราคาตั้งขาย: <b id="full"></b></div>
-<div>ราคาลูกค้าจ่าย: <b id="sell"></b></div>
-<div>กำไรสุทธิ: <b id="profit"></b></div>
+<label>Target Profit</label>
+<input id="profit" type="number" value="70">
 
-<button class="copy" onclick="copySell()">Copy ราคาลูกค้าจ่าย</button>
-<button class="copy" onclick="copyFull()">Copy ราคาตั้งขาย</button>
+<label>Cost</label>
+<input id="cost" type="number">
 
-<h3>Affiliate Test</h3>
+<div class="vat">
+<button id="vat0" onclick="setVat(0)" class="active">ยังไม่จด VAT</button>
+<button id="vat1" onclick="setVat(1)">จด VAT แล้ว</button>
+</div>
 
-<div id="aff10"></div>
-<div id="aff20"></div>
-<div id="aff30"></div>
+<button onclick="calculate()">คำนวณราคา</button>
+
+</div>
+
+<div id="dashboard" class="card" style="display:none">
+
+<div class="result" id="price"></div>
+<div class="small">ราคาแนะนำ</div>
+
+<hr>
+
+<div>ราคาตลาด: <b id="refshow"></b></div>
+<div>ส่วนลด: <b id="discount"></b></div>
+<div>เงินเข้าร้าน: <b id="receive"></b></div>
+<div>ค่าธรรมเนียม: <b id="fee"></b></div>
+<div>VAT: <b id="vat"></b></div>
+<div>กำไรสุทธิ: <b id="profitshow"></b></div>
+<div>กำไร %: <b id="profitpercent"></b></div>
+
+<div class="controls">
+
+<button onclick="undo()">Undo</button>
+<button onclick="redo()">Redo</button>
+<button onclick="reset()">Reset</button>
+
+</div>
+
+</div>
 
 </div>
 
 <script>
 
-const PSYCH=[149,190,199,249,290,299,349,390,399,449,490,499,549,590,599,649,690,699,749,790,799,849,890,899,949,990,999]
-const FEE=0.0299+0.0642+0.0642
-const VATR=7/107
+let vatMode=0
+let history=[]
+let step=-1
 
-function fmt(n){
-return n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})
+function setVat(v){
+
+vatMode=v
+
+document.getElementById("vat0").classList.remove("active")
+document.getElementById("vat1").classList.remove("active")
+
+if(v==0){
+document.getElementById("vat0").classList.add("active")
+}else{
+document.getElementById("vat1").classList.add("active")
 }
-
-function calc(){
-
-let ref=parseFloat(document.getElementById("ref").value)
-
-localStorage.setItem("lisa_ref",ref)
-
-let cost=ref-70
-
-for(let sp of PSYCH){
-
-let fees=sp*FEE
-let vat=sp*VATR
-let sr=sp-fees
-let profit=sr-cost
-
-if(profit<70) continue
-
-let full=Math.ceil((cost*2.5)/100)*100
-
-document.getElementById("full").innerText="฿"+fmt(full)
-document.getElementById("sell").innerText="฿"+fmt(sp)
-document.getElementById("profit").innerText="฿"+fmt(profit)
-
-affTest(sp,cost)
-
-document.getElementById("result").style.display="block"
-
-window.sellPrice=sp
-window.fullPrice=full
-
-return
-}
-
-alert("ไม่พบราคาที่กำไรถึง 70")
 
 }
 
-function affTest(sp,cost){
+function calculate(){
 
-let a10=sp*0.10
-let a20=sp*0.20
-let a30=sp*0.30
+let ref=parseFloat(ref.value)
+let cost=parseFloat(cost.value)
+let target=parseFloat(profit.value)
 
-let sr=sp-(sp*FEE)
+let sr=ref
 
-let p10=sr-a10-cost
-let p20=sr-a20-cost
-let p30=sr-a30-cost
+let fee=sr*0.1583
 
-document.getElementById("aff10").innerHTML="10% Affiliate → "+fmt(p10)
-document.getElementById("aff20").innerHTML="20% Affiliate → "+fmt(p20)
-document.getElementById("aff30").innerHTML="30% Affiliate → "+fmt(p30)
+let vat=sr*(7/107)
+
+let receive=sr-fee
+
+let profit
+
+if(vatMode==0){
+profit=receive-cost
+}else{
+profit=receive-vat-cost
+}
+
+let discount=((ref-sr)/ref)*100
+
+let percent=(profit/cost)*100
+
+dashboard.style.display="block"
+
+price.innerHTML="฿"+sr.toFixed(0)
+refshow.innerHTML="฿"+ref
+discount.innerHTML=discount.toFixed(1)+"%"
+receive.innerHTML="฿"+receive.toFixed(2)
+fee.innerHTML="฿"+fee.toFixed(2)
+vat.innerHTML="฿"+vat.toFixed(2)
+profitshow.innerHTML="฿"+profit.toFixed(2)
+profitpercent.innerHTML=percent.toFixed(1)+"%"
+
+saveState()
 
 }
 
-function copySell(){
+function saveState(){
 
-navigator.clipboard.writeText(window.sellPrice)
+let data={
+ref:ref.value,
+cost:cost.value,
+profit:profit.value,
+vatMode:vatMode
+}
 
-alert("Copy ราคาลูกค้าจ่ายแล้ว")
+history=history.slice(0,step+1)
+
+history.push(data)
+
+step++
 
 }
 
-function copyFull(){
+function undo(){
 
-navigator.clipboard.writeText(window.fullPrice)
+if(step<=0)return
 
-alert("Copy ราคาตั้งขายแล้ว")
+step--
+
+loadState(history[step])
 
 }
 
-window.onload=function(){
+function redo(){
 
-let saved=localStorage.getItem("lisa_ref")
+if(step>=history.length-1)return
 
-if(saved){
-document.getElementById("ref").value=saved
+step++
+
+loadState(history[step])
+
 }
+
+function loadState(data){
+
+ref.value=data.ref
+cost.value=data.cost
+profit.value=data.profit
+
+setVat(data.vatMode)
+
+calculate()
+
+}
+
+function reset(){
+
+ref.value=""
+cost.value=""
+profit.value="70"
+
+dashboard.style.display="none"
+
+history=[]
+step=-1
 
 }
 
