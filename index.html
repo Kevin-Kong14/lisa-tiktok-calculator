@@ -3,120 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISA TikTok Calculator</title>
+<title>LISA Calculator V6</title>
 
 <style>
-
 body{
-font-family: -apple-system,BlinkMacSystemFont;
-background:#f4f6fb;
-margin:0;
+background:#0a0a0a;
+color:white;
+font-family:sans-serif;
+max-width:420px;
+margin:auto;
 padding:20px;
 }
 
-.container{
-max-width:500px;
-margin:auto;
-background:white;
-padding:25px;
-border-radius:20px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-}
-
 h1{
-text-align:center;
+font-size:22px;
 margin-bottom:20px;
-}
-
-label{
-font-weight:600;
-margin-top:10px;
-display:block;
 }
 
 input{
 width:100%;
-padding:12px;
-margin-top:5px;
-border-radius:10px;
-border:1px solid #ddd;
-font-size:16px;
+padding:14px;
+font-size:22px;
+border-radius:12px;
+border:none;
+margin-bottom:12px;
+background:#111;
+color:white;
 }
 
 button{
 width:100%;
-margin-top:20px;
-padding:15px;
-border:none;
+padding:14px;
+margin-top:8px;
 border-radius:12px;
-background:#ff2d55;
-color:white;
-font-size:18px;
+border:none;
+font-size:16px;
 font-weight:bold;
 cursor:pointer;
 }
 
-.result{
-margin-top:20px;
-background:#f8f9ff;
-padding:15px;
-border-radius:12px;
-font-size:18px;
+.calc{
+background:#ff2d55;
+color:white;
 }
 
+.copy{
+background:#222;
+color:white;
+}
+
+.result{
+margin-top:20px;
+padding:16px;
+background:#111;
+border-radius:12px;
+}
+
+.good{color:#34d399}
+.bad{color:#ff6b6b}
 </style>
 
 </head>
 
 <body>
 
-<div class="container">
+<h1>✦ LISA Calculator V6</h1>
 
-<h1>LISA TikTok Calculator</h1>
+<input id="ref" type="number" placeholder="ราคาอ้างอิง">
 
-<label>ราคาขายสินค้า</label>
-<input id="price" type="number">
+<button class="calc" onclick="calc()">คำนวณราคา</button>
 
-<label>ต้นทุนสินค้า</label>
-<input id="cost" type="number">
+<div id="result" class="result" style="display:none">
 
-<label>ค่าคอม Affiliate (%)</label>
-<input id="affiliate" type="number" value="10">
+<div>ราคาตั้งขาย: <b id="full"></b></div>
+<div>ราคาลูกค้าจ่าย: <b id="sell"></b></div>
+<div>กำไรสุทธิ: <b id="profit"></b></div>
 
-<label>ค่าธรรมเนียม TikTok (%)</label>
-<input id="fee" type="number" value="5">
+<button class="copy" onclick="copySell()">Copy ราคาลูกค้าจ่าย</button>
+<button class="copy" onclick="copyFull()">Copy ราคาตั้งขาย</button>
 
-<button onclick="calculate()">คำนวณกำไร</button>
+<h3>Affiliate Test</h3>
 
-<div class="result" id="result">
-กำไรสุทธิจะแสดงตรงนี้
-</div>
+<div id="aff10"></div>
+<div id="aff20"></div>
+<div id="aff30"></div>
 
 </div>
 
 <script>
 
-function calculate(){
+const PSYCH=[149,190,199,249,290,299,349,390,399,449,490,499,549,590,599,649,690,699,749,790,799,849,890,899,949,990,999]
+const FEE=0.0299+0.0642+0.0642
+const VATR=7/107
 
-let price = parseFloat(document.getElementById("price").value) || 0
-let cost = parseFloat(document.getElementById("cost").value) || 0
-let affiliate = parseFloat(document.getElementById("affiliate").value) || 0
-let fee = parseFloat(document.getElementById("fee").value) || 0
+function fmt(n){
+return n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})
+}
 
-let affiliateCost = price * affiliate / 100
-let feeCost = price * fee / 100
+function calc(){
 
-let profit = price - cost - affiliateCost - feeCost
+let ref=parseFloat(document.getElementById("ref").value)
 
-document.getElementById("result").innerHTML =
-`
-ราคาขาย: ${price} บาท<br>
-ต้นทุน: ${cost} บาท<br>
-ค่าคอม Affiliate: ${affiliateCost.toFixed(2)} บาท<br>
-ค่าธรรมเนียม TikTok: ${feeCost.toFixed(2)} บาท<br><br>
+localStorage.setItem("lisa_ref",ref)
 
-<b>กำไรสุทธิ: ${profit.toFixed(2)} บาท</b>
-`
+let cost=ref-70
+
+for(let sp of PSYCH){
+
+let fees=sp*FEE
+let vat=sp*VATR
+let sr=sp-fees
+let profit=sr-cost
+
+if(profit<70) continue
+
+let full=Math.ceil((cost*2.5)/100)*100
+
+document.getElementById("full").innerText="฿"+fmt(full)
+document.getElementById("sell").innerText="฿"+fmt(sp)
+document.getElementById("profit").innerText="฿"+fmt(profit)
+
+affTest(sp,cost)
+
+document.getElementById("result").style.display="block"
+
+window.sellPrice=sp
+window.fullPrice=full
+
+return
+}
+
+alert("ไม่พบราคาที่กำไรถึง 70")
+
+}
+
+function affTest(sp,cost){
+
+let a10=sp*0.10
+let a20=sp*0.20
+let a30=sp*0.30
+
+let sr=sp-(sp*FEE)
+
+let p10=sr-a10-cost
+let p20=sr-a20-cost
+let p30=sr-a30-cost
+
+document.getElementById("aff10").innerHTML="10% Affiliate → "+fmt(p10)
+document.getElementById("aff20").innerHTML="20% Affiliate → "+fmt(p20)
+document.getElementById("aff30").innerHTML="30% Affiliate → "+fmt(p30)
+
+}
+
+function copySell(){
+
+navigator.clipboard.writeText(window.sellPrice)
+
+alert("Copy ราคาลูกค้าจ่ายแล้ว")
+
+}
+
+function copyFull(){
+
+navigator.clipboard.writeText(window.fullPrice)
+
+alert("Copy ราคาตั้งขายแล้ว")
+
+}
+
+window.onload=function(){
+
+let saved=localStorage.getItem("lisa_ref")
+
+if(saved){
+document.getElementById("ref").value=saved
+}
 
 }
 
