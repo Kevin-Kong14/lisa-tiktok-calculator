@@ -1,285 +1,292 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISA Calculator V7</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LISA — คำนวณราคา TikTok</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0a;font-family:'Sarabun',sans-serif;color:#fff;min-height:100vh;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,0.4)}50%{box-shadow:0 0 0 14px rgba(255,45,85,0)}}
+.fade{animation:fadeUp 0.35s ease forwards;}
+.app{max-width:430px;margin:0 auto;}
+.header{background:linear-gradient(180deg,#1a0010 0%,#0a0a0a 100%);padding:44px 24px 20px;position:relative;overflow:hidden;text-align:center;}
+.hg{position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:320px;height:220px;background:radial-gradient(ellipse,rgba(255,45,85,0.2) 0%,transparent 70%);pointer-events:none;}
+.badge{display:inline-flex;align-items:center;background:rgba(255,45,85,0.15);border:1px solid rgba(255,45,85,0.3);border-radius:20px;padding:4px 16px;font-size:11px;letter-spacing:3px;color:#ff2d55;font-weight:700;margin-bottom:10px;text-transform:uppercase;}
+.title{font-size:24px;font-weight:800;background:linear-gradient(135deg,#fff 30%,#ff2d55 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.subtitle{font-size:12px;color:#555;}
+.body{padding:16px 16px 60px;}
+.vat-toggle{display:flex;background:#111;border-radius:12px;padding:4px;margin-bottom:14px;border:1px solid #1e1e1e;}
+.vb{flex:1;padding:10px 8px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:'Sarabun',sans-serif;transition:all 0.2s;background:transparent;color:#444;}
+.vb.active{background:linear-gradient(135deg,#ff2d55,#ff6b35);color:#fff;}
+.input-card{background:linear-gradient(135deg,#1a0a12,#0f0f1a);border:1px solid rgba(255,45,85,0.2);border-radius:20px;padding:18px;margin-bottom:14px;}
+.il{font-size:11px;color:#555;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase;}
+.iw{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 14px;border:1px solid rgba(255,255,255,0.08);transition:border-color 0.3s;}
+.iw.active{border-color:rgba(255,45,85,0.5);}
+.baht{font-size:20px;color:#ff2d55;font-weight:800;}
+.iw input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:30px;font-weight:800;font-family:'Sarabun',sans-serif;width:100%;}
+.chips{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+.chip{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;}
+.co{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);color:#ff6b35;}
+.cg{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399;}
+.btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:15px;font-weight:800;font-family:'Sarabun',sans-serif;cursor:pointer;margin-bottom:16px;letter-spacing:1px;transition:all 0.3s;}
+.btn.on{background:linear-gradient(135deg,#ff2d55,#ff6b35);color:#fff;animation:pulse 2s infinite;}
+.btn.off{background:rgba(255,255,255,0.04);color:#333;cursor:not-allowed;}
+.ebox{text-align:center;padding:28px 20px;background:rgba(255,100,100,0.06);border-radius:16px;border:1px solid rgba(255,100,100,0.15);}
 
-body{
-font-family:Sarabun;
-background:#f4f6f8;
-margin:0;
-padding:20px;
-}
+/* Summary Box — แสดง 3 ราคาหลัก */
+.sbox{background:linear-gradient(135deg,#1a0010,#0a0a1a);border:2px solid #ff2d55;border-radius:22px;padding:22px;margin-bottom:14px;box-shadow:0 0 50px rgba(255,45,85,0.12);position:relative;overflow:hidden;}
+.sg{position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,45,85,0.18),transparent 70%);pointer-events:none;}
+.stitle{font-size:10px;color:#ff2d55;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;font-weight:700;}
+.price-item{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.price-item-label{font-size:13px;color:#666;}
+.price-step{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(255,45,85,0.2);border:1px solid rgba(255,45,85,0.3);font-size:10px;color:#ff2d55;font-weight:800;margin-right:8px;flex-shrink:0;}
+.p-full{font-size:20px;font-weight:800;color:#555;text-decoration:line-through;}
+.disc-wrap{text-align:right;}
+.d-badge{display:inline-block;background:linear-gradient(135deg,#ff2d55,#ff6b35);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:800;color:#fff;}
+.d-sub{font-size:10px;color:#ff6b35;margin-top:3px;text-align:right;}
+.divider-line{height:1px;background:rgba(255,255,255,0.07);margin:16px 0;}
+.p-final-wrap{display:flex;justify-content:space-between;align-items:center;}
+.p-final-label{font-size:14px;color:#34d399;font-weight:700;}
+.p-final{font-size:32px;font-weight:800;background:linear-gradient(135deg,#fff,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
-.container{
-max-width:500px;
-margin:auto;
-}
-
-h1{
-font-size:26px;
-text-align:center;
-margin-bottom:20px;
-}
-
-.card{
-background:white;
-padding:18px;
-border-radius:14px;
-margin-bottom:14px;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
-}
-
-label{
-font-weight:600;
-font-size:14px;
-}
-
-input{
-width:100%;
-padding:10px;
-font-size:18px;
-margin-top:4px;
-margin-bottom:12px;
-border-radius:8px;
-border:1px solid #ddd;
-}
-
-button{
-width:100%;
-padding:14px;
-font-size:18px;
-border:none;
-border-radius:10px;
-background:#ff2d55;
-color:white;
-font-weight:bold;
-}
-
-.vat{
-display:flex;
-gap:8px;
-margin-bottom:12px;
-}
-
-.vat button{
-background:#222;
-color:#aaa;
-font-size:14px;
-padding:10px;
-}
-
-.vat .active{
-background:#ff2d55;
-color:white;
-}
-
-.result{
-font-size:22px;
-font-weight:700;
-}
-
-.small{
-font-size:14px;
-color:#666;
-}
-
-.controls{
-display:flex;
-gap:8px;
-margin-top:10px;
-}
-
-.controls button{
-background:#444;
-font-size:14px;
-}
-
+/* Sections */
+.sec{background:linear-gradient(135deg,#0f0f18,#0c0c14);border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:16px;margin-bottom:10px;}
+.stt{font-size:12px;font-weight:700;margin-bottom:10px;color:#bbb;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.row:last-child{border-bottom:none;}
+.rl{font-size:12px;color:#555;flex:1;padding-right:8px;}
+.rl.hi{color:#ccc;}
+.rv{font-size:12px;font-weight:500;color:#888;white-space:nowrap;}
+.rv.hi{color:#fff;font-weight:700;}
+.rv.neg{color:#ff6b6b;}
+.rv.bold{font-size:14px;font-weight:800;}
+.rv.g{color:#34d399;}
+.rv.r{color:#ff6b6b;}
+.dv{height:1px;background:rgba(255,255,255,0.05);margin:6px 0;}
+.pb{border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.pb.good{background:linear-gradient(135deg,rgba(52,211,153,0.12),rgba(52,211,153,0.04));border:1px solid rgba(52,211,153,0.2);}
+.pb.bad{background:rgba(255,100,100,0.08);border:1px solid rgba(255,100,100,0.2);}
+.pb-lbl{font-size:11px;margin-bottom:2px;}
+.pb-sub{font-size:10px;color:#444;}
+.pb-val{font-size:26px;font-weight:800;}
+.vw{background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:10px 14px;font-size:11px;color:#ffaa00;margin-bottom:12px;line-height:1.6;}
+.breset{width:100%;padding:13px;background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#333;font-size:13px;font-family:‘Sarabun’,sans-serif;cursor:pointer;margin-top:6px;}
+.hidden{display:none;}
 </style>
+
 </head>
-
 <body>
+<div class="app">
+  <div class="header">
+    <div class="hg"></div>
+    <div style="position:relative;">
+      <div class="badge">✦ LISA ✦</div>
+      <div class="title">คำนวณราคา TikTok</div>
+      <div class="subtitle">ใส่ราคาอ้างอิง — Lisa จัดการทุกอย่างให้</div>
+    </div>
+  </div>
 
-<div class="container">
+  <div class="body">
+    <div class="vat-toggle">
+      <button class="vb active" id="vb0" onclick="setVat(0)">ยังไม่จด VAT</button>
+      <button class="vb" id="vb1" onclick="setVat(1)">จด VAT แล้ว</button>
+    </div>
 
-<h1>LISA Calculator</h1>
-
-<div class="card">
-
-<label>Reference Price</label>
-<input id="ref" type="number">
-
-<label>Target Profit</label>
-<input id="profit" type="number" value="70">
-
-<label>Cost</label>
-<input id="cost" type="number">
-
-<div class="vat">
-<button id="vat0" onclick="setVat(0)" class="active">ยังไม่จด VAT</button>
-<button id="vat1" onclick="setVat(1)">จด VAT แล้ว</button>
+```
+<div class="input-card">
+  <div class="il">ราคาอ้างอิง (ราคาหน้าร้านจริง)</div>
+  <div class="iw" id="iw">
+    <span class="baht">฿</span>
+    <input type="number" id="ri" placeholder="เช่น 320" oninput="onInput()">
+  </div>
+  <div class="chips hidden" id="chips">
+    <span class="chip co" id="cc"></span>
+    <span class="chip cg">กำไรเป้าหมาย ≥ ฿70</span>
+  </div>
 </div>
 
-<button onclick="calculate()">คำนวณราคา</button>
+<button class="btn off" id="cb" onclick="doCalc()">คำนวณราคา ✦</button>
 
+<div class="ebox hidden" id="eb">
+  <div style="font-size:28px;margin-bottom:8px;">⚠️</div>
+  <div style="color:#ff6b6b;font-weight:700;margin-bottom:4px;">ไม่สามารถคำนวณได้</div>
+  <div style="color:#444;font-size:12px;">ลองเพิ่มราคาอ้างอิงค่ะ</div>
 </div>
 
-<div id="dashboard" class="card" style="display:none">
+<div id="res" class="hidden">
+  <div class="vw hidden" id="vw">⚠️ โหมด <strong>จด VAT แล้ว</strong> — VAT 7% ถูกหักออกจากกำไรด้วยค่ะ</div>
 
-<div class="result" id="price"></div>
-<div class="small">ราคาแนะนำ</div>
+  <!-- Summary: 3 ราคาหลัก -->
+  <div class="sbox fade">
+    <div class="sg"></div>
+    <div class="stitle">✦ ราคาที่แนะนำ</div>
 
-<hr>
+    <!-- ① ราคาตั้งขาย -->
+    <div class="price-item">
+      <span class="price-item-label"><span class="price-step">①</span>ราคาตั้งขาย</span>
+      <span class="p-full" id="rf"></span>
+    </div>
 
-<div>ราคาตลาด: <b id="refshow"></b></div>
-<div>ส่วนลด: <b id="discount"></b></div>
-<div>เงินเข้าร้าน: <b id="receive"></b></div>
-<div>ค่าธรรมเนียม: <b id="fee"></b></div>
-<div>VAT: <b id="vat"></b></div>
-<div>กำไรสุทธิ: <b id="profitshow"></b></div>
-<div>กำไร %: <b id="profitpercent"></b></div>
+    <!-- ② ส่วนลด -->
+    <div class="price-item">
+      <span class="price-item-label"><span class="price-step">②</span>ส่วนลดร้านค้า</span>
+      <div class="disc-wrap">
+        <div class="d-badge" id="rdp"></div>
+        <div class="d-sub" id="rda"></div>
+      </div>
+    </div>
 
-<div class="controls">
+    <div class="divider-line"></div>
 
-<button onclick="undo()">Undo</button>
-<button onclick="redo()">Redo</button>
-<button onclick="reset()">Reset</button>
+    <!-- ③ ราคาลูกค้าจ่าย -->
+    <div class="p-final-wrap">
+      <span class="p-final-label"><span class="price-step" style="background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.3);color:#34d399;">③</span>ราคาลูกค้าจ่าย</span>
+      <span class="p-final" id="rs"></span>
+    </div>
+  </div>
 
+  <!-- 💸 รายการหัก -->
+  <div class="sec fade">
+    <div class="stt">💸 รายการหัก TikTok</div>
+    <div class="row"><span class="rl">ค่าธรรมเนียมคำสั่งซื้อ (2.99%)</span><span class="rv neg" id="df1"></span></div>
+    <div class="row"><span class="rl">ค่าคอมมิชชั่น TikTok Shop (6.42%)</span><span class="rv neg" id="df2"></span></div>
+    <div class="row"><span class="rl">ค่าธรรมเนียมสนับสนุนเติบโต (6.42%)</span><span class="rv neg" id="df3"></span></div>
+    <div class="dv"></div>
+    <div class="row"><span class="rl">รวมหัก</span><span class="rv neg bold" id="dtf"></span></div>
+  </div>
+
+  <!-- 📊 สรุป -->
+  <div class="sec fade">
+    <div class="stt">📊 สรุป</div>
+    <div class="row"><span class="rl">ต้นทุนสินค้า</span><span class="rv" id="dc"></span></div>
+    <div class="row"><span class="rl">VAT 7% (รวมในราคาแล้ว)</span><span class="rv" id="dv"></span></div>
+    <div class="row"><span class="rl hi">เงินที่ร้านได้รับ</span><span class="rv hi" id="dsr"></span></div>
+    <div class="row" id="dvr"><span class="rl">VAT 7% (นำส่งสรรพากร)</span><span class="rv neg" id="dvd"></span></div>
+    <div class="row"><span class="rl" id="ddl2"></span><span class="rv" id="dd2"></span></div>
+    <div class="dv"></div>
+    <div class="pb" id="rpb">
+      <div>
+        <div class="pb-lbl" id="rpl"></div>
+        <div class="pb-sub" id="rps"></div>
+      </div>
+      <div class="pb-val" id="rp"></div>
+    </div>
+  </div>
+
+  <button class="breset" onclick="doReset()">คำนวณใหม่</button>
 </div>
+```
 
-</div>
-
+  </div>
 </div>
 
 <script>
+const PSYCH=[149,190,199,249,290,299,349,390,399,449,490,499,549,590,599,649,690,699,749,790,799,849,890,899,949,990,999];
+const FEE=0.0299+0.0642+0.0642;
+const VATR=7/107;
+let vatMode=0;
 
-let vatMode=0
-let history=[]
-let step=-1
+function fmt(n){return n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function g(id){return document.getElementById(id);}
+function st(id,v){g(id).textContent=v;}
+
+function premiumFull(sp,cost){
+  // Markup Pricing Theory: ราคาเต็ม = ต้นทุน x 2.5 ปัดขึ้นเป็นเลขลงท้าย 00
+  const raw=cost*2.5;
+  return Math.ceil(raw/100)*100;
+}
+
+function calc(ref){
+  const cost=ref-70;
+  for(const sp of PSYCH){
+    const fees=sp*FEE;
+    const vat=sp*VATR;
+    const sr=sp-fees;
+    const profit=vatMode===0?sr-cost:sr-vat-cost;
+    if(profit<70)continue;
+    const full=premiumFull(sp,cost);
+    const disc=full-sp;
+    const discPct=((disc/full)*100).toFixed(0);
+    return{cost,sp,full,disc,discPct,vat,f1:sp*0.0299,f2:sp*0.0642,f3:sp*0.0642,fees,sr,profit,ref,diff:sr-ref};
+  }
+  return null;
+}
 
 function setVat(v){
-
-vatMode=v
-
-document.getElementById("vat0").classList.remove("active")
-document.getElementById("vat1").classList.remove("active")
-
-if(v==0){
-document.getElementById("vat0").classList.add("active")
-}else{
-document.getElementById("vat1").classList.add("active")
+  vatMode=v;
+  g('vb0').className='vb'+(v===0?' active':'');
+  g('vb1').className='vb'+(v===1?' active':'');
+  if((parseFloat(g('ri').value)||0)>=100)doCalc();
 }
 
+function onInput(){
+  const v=parseFloat(g('ri').value)||0;
+  g('iw').className='iw'+(v>=100?' active':'');
+  g('chips').className=v>0?'chips':'chips hidden';
+  if(v>0)st('cc','ต้นทุน ฿'+fmt(v-70));
+  g('cb').className='btn '+(v>=100?'on':'off');
+  g('res').className='hidden';
+  g('eb').className='ebox hidden';
 }
 
-function calculate(){
+function doCalc(){
+  const v=parseFloat(g('ri').value)||0;
+  if(v<100)return;
+  const r=calc(v);
+  g('eb').className='ebox hidden';
+  g('res').className='hidden';
+  if(!r){g('eb').className='ebox fade';return;}
 
-let ref=parseFloat(ref.value)
-let cost=parseFloat(cost.value)
-let target=parseFloat(profit.value)
+  g('vw').className=vatMode===1?'vw':'vw hidden';
 
-let sr=ref
+  // Summary 3 ราคา
+  st('rf','฿'+fmt(r.full));
+  st('rdp','-'+r.discPct+'%');
+  st('rda','ลด ฿'+fmt(r.disc));
+  st('rs','฿'+fmt(r.sp));
 
-let fee=sr*0.1583
+  // รายการหัก
+  st('df1','-฿'+fmt(r.f1));
+  st('df2','-฿'+fmt(r.f2));
+  st('df3','-฿'+fmt(r.f3));
+  st('dtf','-฿'+fmt(r.fees));
 
-let vat=sr*(7/107)
+  // สรุป
+  st('dc','฿'+fmt(r.cost));
+  st('dv','฿'+fmt(r.vat));
+  st('dsr','฿'+fmt(r.sr));
+  g('dvr').style.display=vatMode===1?'flex':'none';
+  if(vatMode===1)st('dvd','-฿'+fmt(r.vat));
+  st('ddl2','ผลต่างราคาอ้างอิง (฿'+r.ref+')');
+  g('dd2').className='rv '+(r.diff>=0?'g':'r');
+  st('dd2',(r.diff>=0?'+':'')+'฿'+fmt(r.diff));
 
-let receive=sr-fee
+  const good=r.profit>=70;
+  const pc=good?'#34d399':'#ff6b6b';
+  g('rpb').className='pb '+(good?'good':'bad');
+  g('rpl').style.color=pc;
+  st('rpl',good?'✅ กำไรสุทธิ':'⚠️ กำไรต่ำกว่าเป้า');
+  st('rps',vatMode===1?'หลังหัก VAT + ต้นทุน':'หลังหักต้นทุน');
+  g('rp').style.color=pc;
+  st('rp','฿'+fmt(r.profit));
 
-let profit
-
-if(vatMode==0){
-profit=receive-cost
-}else{
-profit=receive-vat-cost
+  g('res').classList.remove('hidden');
 }
 
-let discount=((ref-sr)/ref)*100
-
-let percent=(profit/cost)*100
-
-dashboard.style.display="block"
-
-price.innerHTML="฿"+sr.toFixed(0)
-refshow.innerHTML="฿"+ref
-discount.innerHTML=discount.toFixed(1)+"%"
-receive.innerHTML="฿"+receive.toFixed(2)
-fee.innerHTML="฿"+fee.toFixed(2)
-vat.innerHTML="฿"+vat.toFixed(2)
-profitshow.innerHTML="฿"+profit.toFixed(2)
-profitpercent.innerHTML=percent.toFixed(1)+"%"
-
-saveState()
-
+function doReset(){
+  g('ri').value='';
+  g('res').className='hidden';
+  g('eb').className='ebox hidden';
+  g('iw').className='iw';
+  g('chips').className='chips hidden';
+  g('cb').className='btn off';
 }
-
-function saveState(){
-
-let data={
-ref:ref.value,
-cost:cost.value,
-profit:profit.value,
-vatMode:vatMode
-}
-
-history=history.slice(0,step+1)
-
-history.push(data)
-
-step++
-
-}
-
-function undo(){
-
-if(step<=0)return
-
-step--
-
-loadState(history[step])
-
-}
-
-function redo(){
-
-if(step>=history.length-1)return
-
-step++
-
-loadState(history[step])
-
-}
-
-function loadState(data){
-
-ref.value=data.ref
-cost.value=data.cost
-profit.value=data.profit
-
-setVat(data.vatMode)
-
-calculate()
-
-}
-
-function reset(){
-
-ref.value=""
-cost.value=""
-profit.value="70"
-
-dashboard.style.display="none"
-
-history=[]
-step=-1
-
-}
-
 </script>
 
 </body>
