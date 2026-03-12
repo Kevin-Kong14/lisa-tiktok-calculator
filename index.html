@@ -1,1 +1,870 @@
+<!DOCTYPE html>
 
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LISA v2 — คำนวณราคา TikTok</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#e0e0ec;font-family:'Sarabun',sans-serif;font-weight:600;min-height:100vh;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,0.35)}50%{box-shadow:0 0 0 12px rgba(255,45,85,0)}}
+.fade{animation:fadeUp 0.3s ease forwards;}
+.hidden{display:none!important;}
+.app{max-width:430px;margin:0 auto;background:#f2f2f8;min-height:100vh;}
+
+/* ===== TAB BAR ===== */
+.tabbar{display:flex;background:#fff;border-bottom:2px solid #ebebf5;padding:0 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.tab{flex:1;padding:14px 8px;text-align:center;font-size:14px;font-weight:800;color:#ccc;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all 0.2s;}
+.tab.active{color:#ff2d55;border-color:#ff2d55;}
+
+/* ===== HEADERS ===== */
+.t1-header{background:linear-gradient(135deg,#ff2d55,#ff6b35);padding:22px 20px 18px;}
+.t1-title{font-size:26px;font-weight:900;color:#fff;}
+.t1-sub{font-size:13px;color:rgba(255,255,255,0.8);margin-top:3px;font-weight:700;}
+.t2-header{background:linear-gradient(135deg,#667eea,#764ba2);padding:22px 20px 18px;}
+.t2-title{font-size:26px;font-weight:900;color:#fff;}
+.t2-sub{font-size:13px;color:rgba(255,255,255,0.8);margin-top:3px;font-weight:700;}
+
+/* ===== BODY ===== */
+.body{padding:14px;display:flex;flex-direction:column;gap:12px;padding-bottom:40px;}
+
+/* ===== VAT TOGGLE ===== */
+.vat-row{display:flex;background:#fff;border-radius:14px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.vt{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:800;text-align:center;color:#ccc;cursor:pointer;border:none;background:transparent;font-family:‘Sarabun’,sans-serif;transition:all 0.2s;}
+.vt.on{background:linear-gradient(135deg,#ff2d55,#ff6b35);color:#fff;}
+.vat-warn{background:#fff8e6;border:2px solid #ffd200;border-radius:12px;padding:10px 14px;font-size:12px;color:#996600;line-height:1.6;font-weight:700;}
+
+/* ===== INPUT ===== */
+.in-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.in-label{font-size:12px;color:#aaa;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:800;}
+.in-wrap{display:flex;align-items:center;gap:8px;background:#f8f8ff;border-radius:12px;padding:12px 16px;border:2.5px solid #eee;transition:border-color 0.2s;}
+.in-wrap.active{border-color:#ff2d55;}
+.in-sym{font-size:22px;color:#ff2d55;font-weight:900;}
+.in-wrap input{flex:1;background:transparent;border:none;outline:none;font-size:34px;font-weight:900;font-family:‘Sarabun’,sans-serif;color:#1a1a2e;width:100%;}
+.in-hint{font-size:12px;color:#bbb;margin-top:8px;font-weight:700;}
+.chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.chip{border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800;}
+.chip-o{background:#fff3ee;border:2px solid #ffd4c2;color:#ff6b35;}
+.chip-g{background:#edfff6;border:2px solid #b8f5d8;color:#22c77a;}
+
+/* ===== CALC BUTTON ===== */
+.calc-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:900;font-family:‘Sarabun’,sans-serif;cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;}
+.calc-btn.on{background:linear-gradient(135deg,#ff2d55,#ff6b35);color:#fff;animation:pulse 2s infinite;}
+.calc-btn.off{background:#f0f0f5;color:#ccc;cursor:not-allowed;}
+
+/* ===== ERROR BOX ===== */
+.ebox{text-align:center;padding:28px 20px;background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:2px solid #ffdddd;}
+
+/* ===== STRATEGY CARDS ===== */
+.sec-card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.sec-label{font-size:12px;color:#aaa;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;font-weight:800;}
+.strat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.sc{border-radius:14px;padding:12px 8px;text-align:center;border:2.5px solid transparent;cursor:pointer;transition:all 0.2s;}
+.sc:active{transform:scale(0.97);}
+.sc.c{background:#edfff6;border-color:#b8f5d8;}
+.sc.r{background:#fff0f3;border-color:#ffb3c1;box-shadow:0 4px 16px rgba(255,45,85,0.1);}
+.sc.p{background:#f3f0ff;border-color:#d4b8f5;}
+.sc.selected{transform:scale(1.04);box-shadow:0 6px 20px rgba(0,0,0,0.12);}
+.sc-icon{font-size:16px;margin-bottom:4px;}
+.sc-lbl{font-size:10px;color:#aaa;margin-bottom:4px;font-weight:700;}
+.sc-price{font-size:17px;font-weight:900;}
+.sc.c .sc-price{color:#22c77a;}
+.sc.r .sc-price{color:#ff2d55;}
+.sc.p .sc-price{color:#8b5cf6;}
+.sc-profit{font-size:11px;color:#aaa;margin-top:2px;font-weight:700;}
+.sc-tag{font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:4px;font-weight:800;}
+.sc.c .sc-tag{background:#d4f7e8;color:#22c77a;}
+.sc.r .sc-tag{background:#ffd6de;color:#ff2d55;}
+.sc.p .sc-tag{background:#e8d4f7;color:#8b5cf6;}
+
+/* ===== SUMMARY BOX ===== */
+.sum-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:2.5px solid #ffb3c1;}
+.sum-badge{font-size:11px;color:#ff2d55;letter-spacing:2px;text-transform:uppercase;font-weight:800;margin-bottom:16px;}
+.sb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.sb-left{display:flex;align-items:center;gap:8px;}
+.step{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:900;flex-shrink:0;}
+.step.r{background:#fff0f3;border:2px solid #ffb3c1;color:#ff2d55;}
+.step.g{background:#edfff6;border:2px solid #b8f5d8;color:#22c77a;}
+.sb-lbl{font-size:14px;color:#888;font-weight:700;}
+.p-full{font-size:20px;font-weight:900;color:#d4a000;background:#fffbe6;border-radius:8px;padding:3px 10px;}
+.disc-both{text-align:right;}
+.d-main{display:inline-block;background:linear-gradient(135deg,#ff2d55,#ff6b35);border-radius:8px;padding:5px 12px;font-size:14px;font-weight:900;color:#fff;}
+.d-alt{font-size:12px;color:#ff6b35;margin-top:3px;font-weight:800;}
+.d-rule{font-size:10px;color:#ff2d55;background:#fff0f3;border-radius:4px;padding:2px 7px;margin-top:3px;display:inline-block;font-weight:700;}
+.sb-divider{height:2px;background:#f5f5f5;margin:12px 0;}
+.sb-final{display:flex;justify-content:space-between;align-items:center;}
+.sb-final-lbl{font-size:15px;color:#22c77a;font-weight:900;}
+.sb-final-price{font-size:34px;font-weight:900;color:#1a1a2e;}
+
+/* ===== COPY BUTTONS ===== */
+.copy-row{display:flex;gap:6px;margin-top:14px;}
+.cb{flex:1;padding:9px 4px;border-radius:10px;border:2px solid #ebebf5;background:#f8f8ff;text-align:center;cursor:pointer;transition:all 0.2s;}
+.cb:active{transform:scale(0.95);}
+.cb.copied{background:#edfff6;border-color:#b8f5d8;}
+.cb-val{font-size:13px;font-weight:900;color:#1a1a2e;display:block;margin-bottom:2px;}
+.cb-lbl{font-size:10px;color:#bbb;font-weight:700;}
+
+/* ===== DISCOUNT SLIDER ===== */
+.slider-card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.sl-head{display:flex;justify-content:space-between;margin-bottom:10px;align-items:center;}
+.sl-title{font-size:14px;color:#888;font-weight:800;}
+.sl-pct{font-size:16px;color:#ff2d55;font-weight:900;}
+.sl-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sl-input{flex:1;-webkit-appearance:none;height:6px;border-radius:6px;outline:none;background:linear-gradient(to right,#ff2d55 var(–pct,44%),#f0f0f5 var(–pct,44%));}
+.sl-input::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#ff2d55;cursor:pointer;box-shadow:0 2px 8px rgba(255,45,85,0.4);}
+.undo-row{display:flex;gap:6px;}
+.ub{flex:1;padding:9px;border-radius:10px;border:2px solid #ebebf5;font-size:12px;color:#aaa;text-align:center;font-weight:800;background:#f8f8ff;cursor:pointer;transition:all 0.2s;font-family:‘Sarabun’,sans-serif;}
+.ub:disabled{opacity:0.3;cursor:not-allowed;}
+.ub.rs{color:#ff6b35;border-color:#ffd4c2;}
+.ub:active:not(:disabled){transform:scale(0.95);}
+
+/* ===== SUMMARY SECTION ===== */
+.sec-light{background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.sec-title{font-size:14px;font-weight:900;color:#1a1a2e;margin-bottom:12px;}
+.sec-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;}
+.sec-row:last-child{border-bottom:none;}
+.sl2{font-size:13px;color:#aaa;flex:1;font-weight:700;}
+.sl2.hi{color:#1a1a2e;font-weight:900;}
+.sl2.ind{padding-left:14px;font-size:12px;}
+.sv{font-size:13px;color:#aaa;white-space:nowrap;font-weight:700;}
+.sv.neg{color:#ff5555;font-weight:800;}
+.sv.hi{color:#1a1a2e;font-weight:900;}
+.sv.g{color:#22c77a;font-weight:900;}
+.dv{height:2px;background:#f0f0f5;margin:6px 0;}
+.profit-bar{border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.profit-bar.good{background:linear-gradient(135deg,#edfff6,#d4f7e8);border:2px solid #b8f5d8;}
+.profit-bar.bad{background:linear-gradient(135deg,#fff0f0,#ffe0e0);border:2px solid #ffb3b3;}
+.pb-lbl{font-size:13px;font-weight:900;}
+.pb-sub{font-size:11px;color:#aaa;margin-top:2px;font-weight:700;}
+.pb-pct{font-size:12px;font-weight:900;margin-top:4px;}
+.pb-val{font-size:28px;font-weight:900;}
+.profit-bar.good .pb-lbl,.profit-bar.good .pb-pct,.profit-bar.good .pb-val{color:#22c77a;}
+.profit-bar.bad .pb-lbl,.profit-bar.bad .pb-pct,.profit-bar.bad .pb-val{color:#ff5555;}
+
+/* ===== RESET BUTTON ===== */
+.reset-btn{width:100%;padding:13px;background:#fff;border:2px solid #ebebf5;border-radius:14px;color:#aaa;font-size:14px;font-family:‘Sarabun’,sans-serif;cursor:pointer;font-weight:800;transition:all 0.2s;}
+.reset-btn:active{transform:scale(0.98);}
+
+/* ===== TAB 2: TOOL CARDS ===== */
+.tool-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.tc-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.tc-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.tc-title{font-size:19px;font-weight:900;color:#1a1a2e;}
+.tc-desc{font-size:13px;color:#888;line-height:1.7;margin-bottom:12px;padding-left:58px;font-weight:700;}
+.tip-box{border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.7;margin-bottom:12px;font-weight:700;}
+
+/* Before/After Table */
+.ba-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.ba-table th{padding:9px 10px;font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;text-align:left;}
+.ba-table td{padding:9px 10px;border-top:1px solid #f5f5f5;font-size:13px;font-weight:700;}
+.ba-table td:not(:first-child),.ba-table th:not(:first-child){text-align:right;}
+.ba-table tr.hi td{font-weight:900;font-size:14px;}
+.note-box{font-size:12px;color:#888;line-height:1.7;padding:10px 14px;background:#f8f8ff;border-radius:10px;border-left:4px solid #ddd;font-weight:700;margin-bottom:12px;}
+
+.tc-input-row{display:flex;gap:8px;margin-bottom:10px;}
+.tc-input{flex:1;display:flex;align-items:center;gap:8px;background:#f8f8ff;border-radius:12px;padding:12px 14px;border:2px solid #eee;transition:border-color 0.2s;}
+.tc-input.active{border-color:#667eea;}
+.tc-sym{font-size:18px;font-weight:900;}
+.tc-input input{flex:1;background:transparent;border:none;outline:none;font-size:18px;font-weight:800;font-family:‘Sarabun’,sans-serif;color:#1a1a2e;width:100%;}
+.tc-btn{padding:13px 18px;border-radius:12px;border:none;font-size:14px;font-weight:900;color:#fff;cursor:pointer;font-family:‘Sarabun’,sans-serif;white-space:nowrap;transition:all 0.2s;}
+.tc-btn:active{transform:scale(0.97);}
+.tc-btn-full{width:100%;padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:900;color:#fff;cursor:pointer;font-family:‘Sarabun’,sans-serif;transition:all 0.2s;}
+.tc-btn-full:active{transform:scale(0.98);}
+
+/* No data state */
+.no-data{text-align:center;padding:20px;color:#bbb;font-size:13px;font-weight:700;}
+
+/* BE */
+.be .tc-icon{background:linear-gradient(135deg,#667eea,#764ba2);}
+.be .tip-box{background:#f0ecff;color:#5a3e9a;}
+.be .ba-table th{background:#f0ecff;color:#764ba2;}
+.be .ba-table tr.hi td{color:#667eea;}
+.be .note-box{border-left-color:#a78bfa;}
+.be .tc-btn,.be .tc-btn-full{background:linear-gradient(135deg,#667eea,#764ba2);}
+.be .tc-sym,.be .tc-input.active{color:#667eea;border-color:#667eea;}
+
+/* Voucher */
+.vc .tc-icon{background:linear-gradient(135deg,#f7971e,#ffd200);}
+.vc .tip-box{background:#fff8e6;color:#996600;}
+.vc .ba-table th{background:#fff8e6;color:#e08000;}
+.vc .ba-table tr.hi td{color:#e08000;}
+.vc .note-box{border-left-color:#ffd200;}
+.vc .tc-btn,.vc .tc-btn-full{background:linear-gradient(135deg,#f7971e,#ffd200);}
+.vc .tc-sym{color:#f7971e;}
+.vc .tc-input.active{border-color:#f7971e;}
+
+/* Campaign */
+.cp .tc-icon{background:linear-gradient(135deg,#ff2d55,#ff6b35);}
+.cp .tip-box{background:#fff0f3;color:#cc0030;}
+.cp .ba-table th{background:#fff0f3;color:#cc0030;}
+.cp .ba-table tr.hi td{color:#ff2d55;}
+.cp .note-box{border-left-color:#ff6b35;}
+.cp-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.cpt{padding:7px 14px;border-radius:16px;font-size:12px;font-weight:800;border:2px solid #eee;color:#aaa;background:#f8f8ff;cursor:pointer;transition:all 0.2s;font-family:‘Sarabun’,sans-serif;}
+.cpt.on{background:linear-gradient(135deg,#ff2d55,#ff6b35);color:#fff;border-color:transparent;}
+
+/* Campaign multipliers */
+/* Flash: -5%, Payday: -3%, 11.11: -8%, 12.12: -10% from recommended */
+</style>
+
+</head>
+<body>
+<div class="app">
+
+  <!-- TAB BAR -->
+
+  <div class="tabbar">
+    <div class="tab active" id="tab1" onclick="switchTab(1)">🏠 คำนวณราคา</div>
+    <div class="tab" id="tab2" onclick="switchTab(2)">🛠️ เครื่องมือ</div>
+  </div>
+
+  <!-- ===== TAB 1 ===== -->
+
+  <div id="page1">
+    <div class="t1-header">
+      <div class="t1-title">คำนวณราคา TikTok</div>
+      <div class="t1-sub">ใส่ราคาอ้างอิง — Lisa จัดการให้ค่ะ</div>
+    </div>
+    <div class="body">
+
+```
+  <!-- VAT Toggle -->
+  <div class="vat-row">
+    <button class="vt on" id="vb0" onclick="setVat(0)">ยังไม่จด VAT</button>
+    <button class="vt" id="vb1" onclick="setVat(1)">จด VAT แล้ว</button>
+  </div>
+  <div class="vat-warn hidden" id="vatWarn">⚠️ โหมด <strong>จด VAT แล้ว</strong> — VAT 7% ถูกหักออกจากกำไรด้วยค่ะ</div>
+
+  <!-- Input -->
+  <div class="in-card">
+    <div class="in-label">ราคาอ้างอิง (ราคาหน้าร้านจริง)</div>
+    <div class="in-wrap" id="inWrap">
+      <span class="in-sym">฿</span>
+      <input type="number" id="ri" placeholder="เช่น 320" oninput="onInput()" onkeydown="if(event.key==='Enter')doCalc()">
+    </div>
+    <div class="in-hint">💡 กด Enter เพื่อคำนวณได้เลยค่ะ</div>
+    <div class="chips hidden" id="chips">
+      <span class="chip chip-o" id="costChip"></span>
+      <span class="chip chip-g">กำไรเป้าหมาย ≥ ฿70</span>
+    </div>
+  </div>
+
+  <!-- Calc Button -->
+  <button class="calc-btn off" id="calcBtn" onclick="doCalc()">คำนวณราคา ✦</button>
+
+  <!-- Error -->
+  <div class="ebox hidden" id="errBox">
+    <div style="font-size:32px;margin-bottom:8px;">⚠️</div>
+    <div style="color:#ff5555;font-weight:800;font-size:15px;margin-bottom:4px;">ไม่สามารถคำนวณได้</div>
+    <div style="color:#bbb;font-size:13px;">ลองเพิ่มราคาอ้างอิงค่ะ</div>
+  </div>
+
+  <!-- Result Section -->
+  <div id="resultSection" class="hidden">
+
+    <!-- Strategy Cards -->
+    <div class="sec-card fade">
+      <div class="sec-label">✦ เลือกกลยุทธ์ราคา</div>
+      <div class="strat-grid" id="stratGrid"></div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="sum-card fade">
+      <div class="sum-badge">✦ ราคาที่แนะนำ</div>
+      <div class="sb-row">
+        <div class="sb-left"><span class="step r">①</span><span class="sb-lbl">ราคาตั้งขาย</span></div>
+        <span class="p-full" id="rFull"></span>
+      </div>
+      <div class="sb-row">
+        <div class="sb-left"><span class="step r">②</span><span class="sb-lbl">ส่วนลดร้านค้า</span></div>
+        <div class="disc-both">
+          <div class="d-main" id="dMain"></div>
+          <div class="d-alt" id="dAlt"></div>
+          <div class="d-rule" id="dRule"></div>
+        </div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-final">
+        <div class="sb-left"><span class="step g">③</span><span class="sb-final-lbl">ราคาลูกค้าจ่าย</span></div>
+        <span class="sb-final-price" id="rSell"></span>
+      </div>
+      <!-- Copy -->
+      <div class="copy-row">
+        <div class="cb" id="cpFull" onclick="copyVal('full')">
+          <span class="cb-val" id="cpFullVal"></span>
+          <span class="cb-lbl">📋 ราคาตั้ง</span>
+        </div>
+        <div class="cb" id="cpDisc" onclick="copyVal('disc')">
+          <span class="cb-val" id="cpDiscVal"></span>
+          <span class="cb-lbl">📋 ส่วนลด</span>
+        </div>
+        <div class="cb" id="cpSell" onclick="copyVal('sell')">
+          <span class="cb-val" id="cpSellVal"></span>
+          <span class="cb-lbl">📋 ราคาจ่าย</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discount Slider -->
+    <div class="slider-card fade">
+      <div class="sl-head">
+        <span class="sl-title">✏️ ปรับส่วนลดเอง</span>
+        <span class="sl-pct" id="slPct">44%</span>
+      </div>
+      <div class="sl-row">
+        <input type="range" class="sl-input" id="discSlider" min="10" max="70" step="1"
+          oninput="onSlider(this.value)" style="--pct:44%">
+      </div>
+      <div class="undo-row">
+        <button class="ub" id="undoBtn" onclick="doUndo()" disabled>↩ Undo</button>
+        <button class="ub" id="redoBtn" onclick="doRedo()" disabled>↪ Redo</button>
+        <button class="ub rs" onclick="doResetDisc()">⟳ ค่าเริ่มต้น</button>
+      </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="sec-light fade">
+      <div class="sec-title">📊 สรุป</div>
+      <div class="sec-row">
+        <span class="sl2 hi">ราคาลูกค้าจ่าย</span>
+        <span class="sv hi" id="sumSell"></span>
+      </div>
+      <div class="sec-row">
+        <span class="sl2 ind">ค่าธรรมเนียมคำสั่งซื้อ (2.99%)</span>
+        <span class="sv neg" id="sumF1"></span>
+      </div>
+      <div class="sec-row">
+        <span class="sl2 ind">ค่าคอมมิชชั่น TikTok Shop (6.42%)</span>
+        <span class="sv neg" id="sumF2"></span>
+      </div>
+      <div class="sec-row">
+        <span class="sl2 ind">ค่าธรรมเนียมสนับสนุนเติบโต (6.42%)</span>
+        <span class="sv neg" id="sumF3"></span>
+      </div>
+      <div class="sec-row">
+        <span class="sl2 ind">รวม VAT ในราคาขาย (7%)</span>
+        <span class="sv" id="sumVat"></span>
+      </div>
+      <div class="dv"></div>
+      <div class="sec-row">
+        <span class="sl2 hi" id="sumRecvLabel">เงินร้านได้รับ (อ้างอิง ฿–)</span>
+        <span class="sv hi" id="sumRecv"></span>
+      </div>
+      <div class="dv"></div>
+      <div class="profit-bar good" id="profitBar">
+        <div>
+          <div class="pb-lbl" id="pbLabel">✅ กำไรสุทธิ</div>
+          <div class="pb-sub" id="pbSub">หลังหักต้นทุน <span id="pbCost"></span></div>
+          <div class="pb-pct" id="pbPct"></div>
+        </div>
+        <div class="pb-val" id="pbVal"></div>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="doReset()">🔄 คำนวณใหม่</button>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ===== TAB 2 ===== -->
+
+  <div id="page2" class="hidden">
+    <div class="t2-header">
+      <div class="t2-title">🛠️ เครื่องมือเพิ่มเติม</div>
+      <div class="t2-sub">3 เครื่องมือช่วยวางแผนขาย</div>
+    </div>
+    <div class="body">
+
+```
+  <!-- No data warning -->
+  <div id="noDataWarn" class="ebox">
+    <div style="font-size:32px;margin-bottom:8px;">💡</div>
+    <div style="color:#ff6b35;font-weight:800;font-size:15px;margin-bottom:4px;">ยังไม่ได้คำนวณราคาค่ะ</div>
+    <div style="color:#bbb;font-size:13px;">กรุณาไปที่ Tab คำนวณราคา แล้วใส่ราคาอ้างอิงก่อนนะคะ</div>
+  </div>
+
+  <div id="toolsSection" class="hidden">
+
+    <!-- Break-even -->
+    <div class="tool-card be">
+      <div class="tc-header">
+        <div class="tc-icon">📐</div>
+        <div class="tc-title">Break-even</div>
+      </div>
+      <div class="tc-desc">อยากได้ <strong>กำไรเท่าไหร่/เดือน?</strong> ระบบจะบอกว่าต้องขายกี่ชิ้นถึงจะถึงเป้าค่ะ</div>
+      <div class="tip-box">💡 <strong>ตัวอย่าง:</strong> อยากได้กำไร ฿10,000/เดือน กำไรต่อชิ้น ฿78 → ต้องขาย 128 ชิ้น หรือวันละ 4-5 ชิ้นค่ะ</div>
+      <div class="tc-input-row">
+        <div class="tc-input" id="beInputWrap">
+          <span class="tc-sym" style="color:#667eea;">฿</span>
+          <input type="number" id="beInput" placeholder="กำไรที่อยากได้/เดือน เช่น 10000" oninput="this.parentElement.classList.toggle('active',this.value.length>0)">
+        </div>
+        <button class="tc-btn" style="background:linear-gradient(135deg,#667eea,#764ba2);" onclick="calcBE()">คำนวณ</button>
+      </div>
+      <div id="beResult" class="hidden">
+        <table class="ba-table">
+          <tr><th>รายการ</th><th>ผลลัพธ์</th></tr>
+          <tr><td>กำไรที่อยากได้/เดือน</td><td id="beGoal"></td></tr>
+          <tr><td>กำไรต่อชิ้น</td><td id="beProfit"></td></tr>
+          <tr><td>ต้องขายต่อวัน (30 วัน)</td><td id="bePerDay"></td></tr>
+          <tr class="hi"><td>ต้องขายทั้งหมด</td><td id="beTotal"></td></tr>
+        </table>
+        <div class="note-box" id="beNote"></div>
+      </div>
+    </div>
+
+    <!-- Voucher -->
+    <div class="tool-card vc">
+      <div class="tc-header">
+        <div class="tc-icon">🎟️</div>
+        <div class="tc-title">Voucher / Coupon</div>
+      </div>
+      <div class="tc-desc">TikTok แจก Voucher ให้ลูกค้า เช่น ลด ฿50 — ดูว่า <strong>กำไรที่เหลือจริงๆ เท่าไหร่</strong></div>
+      <div class="tip-box">💡 <strong>ตัวอย่าง:</strong> กำไรปกติ ฿78 ลูกค้าใช้ Voucher ฿50 → เหลือกำไรแค่ ฿36 ควรตั้งราคารองรับด้วยค่ะ</div>
+      <div class="tc-input-row">
+        <div class="tc-input" id="vcInputWrap">
+          <span class="tc-sym" style="color:#f7971e;">฿</span>
+          <input type="number" id="vcInput" placeholder="มูลค่า Voucher เช่น 50" oninput="this.parentElement.classList.toggle('active',this.value.length>0)">
+        </div>
+        <button class="tc-btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);" onclick="calcVC()">คำนวณ</button>
+      </div>
+      <div id="vcResult" class="hidden">
+        <table class="ba-table">
+          <tr><th>รายการ</th><th>ก่อน Voucher</th><th>หลัง Voucher</th></tr>
+          <tr><td>ราคาลูกค้าจ่าย</td><td id="vcSellBefore"></td><td id="vcSellAfter"></td></tr>
+          <tr><td>ค่าธรรมเนียม TikTok</td><td id="vcFeeBefore"></td><td id="vcFeeAfter"></td></tr>
+          <tr><td id="vcRecvLabel">เงินร้านได้รับ (อ้างอิง ฿–)</td><td id="vcRecvBefore"></td><td id="vcRecvAfter"></td></tr>
+          <tr class="hi"><td>กำไรสุทธิ</td><td id="vcProfitBefore"></td><td id="vcProfitAfter"></td></tr>
+        </table>
+        <div class="note-box" id="vcNote"></div>
+      </div>
+    </div>
+
+    <!-- Campaign -->
+    <div class="tool-card cp">
+      <div class="tc-header">
+        <div class="tc-icon">📣</div>
+        <div class="tc-title">Campaign Mode</div>
+      </div>
+      <div class="tc-desc">เมื่อ TikTok มีแคมเปญ — ดูว่า <strong>ลดได้แค่ไหนโดยยังมีกำไร</strong></div>
+      <div class="cp-tabs" id="cpTabs">
+        <button class="cpt on" onclick="setCampaign('normal',this)">ปกติ</button>
+        <button class="cpt" onclick="setCampaign('flash',this)">⚡ Flash Sale</button>
+        <button class="cpt" onclick="setCampaign('payday',this)">💰 Payday</button>
+        <button class="cpt" onclick="setCampaign('1111',this)">🛒 11.11</button>
+        <button class="cpt" onclick="setCampaign('1212',this)">🎉 12.12</button>
+      </div>
+      <div id="cpResult"></div>
+    </div>
+
+  </div>
+</div>
+```
+
+  </div>
+
+</div>
+
+<script>
+// ===== CONSTANTS =====
+const PSYCH=[149,190,199,249,290,299,349,390,399,449,490,499,549,590,599,649,690,699,749,790,799,849,890,899,949,990,999];
+const FEE=0.0299+0.0642+0.0642; // 15.83%
+const VATR=7/107;
+const PROFIT_MIN=70;
+
+// ===== STATE =====
+let vatMode=0;
+let currentRef=0;
+let currentResult=null; // main calc result
+let defaultDiscPct=0;
+let currentDiscPct=0;
+let undoStack=[];
+let redoStack=[];
+
+// ===== UTILS =====
+function fmt(n){return n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtInt(n){return Math.round(n).toLocaleString('th-TH');}
+function g(id){return document.getElementById(id);}
+function st(id,v){g(id).textContent=v;}
+function show(id){g(id).classList.remove('hidden');}
+function hide(id){g(id).classList.add('hidden');}
+
+// Rule of 100: ราคา < 500 ใช้ % | ราคา >= 500 ใช้ ฿
+function discDisplay(sp, disc, pct){
+  if(sp<500) return {main:'-'+pct+'%', alt:'ลด ฿'+fmt(disc), rule:'✅ Rule of 100: แนะนำใช้ % (ราคา < ฿500)'};
+  else return {main:'-฿'+fmtInt(disc), alt:'คิดเป็น '+pct+'% off', rule:'✅ Rule of 100: แนะนำใช้ ฿ (ราคา ≥ ฿500)'};
+}
+
+// Markup Pricing: ต้นทุน x 2.5 ปัดขึ้นเลขกลม 00
+function fullPrice(cost){
+  return Math.ceil(cost*2.5/100)*100;
+}
+
+// คำนวณกำไรจาก selling price
+function calcProfit(sp, cost){
+  const fees=sp*FEE;
+  const vat=sp*VATR;
+  const recv=sp-fees;
+  const profit=vatMode===0 ? recv-cost : recv-vat-cost;
+  return {fees, vat, recv, profit};
+}
+
+// หา selling price แรกที่กำไร >= min
+function findSP(cost, min){
+  for(const sp of PSYCH){
+    const {profit}=calcProfit(sp,cost);
+    if(profit>=min) return sp;
+  }
+  return null;
+}
+
+// Main calc
+function calc(ref){
+  const cost=ref-PROFIT_MIN;
+  const sp=findSP(cost, PROFIT_MIN);
+  if(!sp) return null;
+  const {fees,vat,recv,profit}=calcProfit(sp,cost);
+  const full=fullPrice(cost);
+  const disc=full-sp;
+  const discPct=Math.round(disc/full*100);
+  const marginPct=(profit/ref*100).toFixed(1);
+  return{ref,cost,sp,full,disc,discPct,fees,vat,recv,profit,marginPct,
+    f1:sp*0.0299, f2:sp*0.0642, f3:sp*0.0642};
+}
+
+// Calc 3 strategy options
+function calcRange(ref){
+  const cost=ref-PROFIT_MIN;
+  const labels=[
+    {key:'c',icon:'🟢',lbl:'Conservative',tag:'ขายง่าย',cls:'c'},
+    {key:'r',icon:'🔥',lbl:'Recommended',tag:'แนะนำ',cls:'r'},
+    {key:'p',icon:'💎',lbl:'Premium',tag:'กำไรสูง',cls:'p'},
+  ];
+  const results=[];
+  let found=0;
+  for(const sp of PSYCH){
+    const {profit}=calcProfit(sp,cost);
+    if(profit<50) continue;
+    if(found<3){
+      const full=fullPrice(cost);
+      const disc=full-sp;
+      const discPct=Math.round(disc/full*100);
+      const marginPct=(profit/ref*100).toFixed(1);
+      results.push({sp,full,disc,discPct,profit,marginPct,...labels[found],cost});
+      found++;
+    }
+    if(found===3) break;
+  }
+  return results;
+}
+
+// ===== TAB SWITCH =====
+function switchTab(n){
+  g('tab1').className='tab'+(n===1?' active':'');
+  g('tab2').className='tab'+(n===2?' active':'');
+  g('page1').className=n===1?'':'hidden';
+  g('page2').className=n===2?'':'hidden';
+  if(n===2) refreshTools();
+}
+
+// ===== VAT =====
+function setVat(v){
+  vatMode=v;
+  g('vb0').className='vt'+(v===0?' on':'');
+  g('vb1').className='vt'+(v===1?' on':'');
+  g('vatWarn').className=v===1?'vat-warn':'vat-warn hidden';
+  const ref=parseFloat(g('ri').value)||0;
+  if(ref>=100) doCalc();
+}
+
+// ===== INPUT =====
+function onInput(){
+  const v=parseFloat(g('ri').value)||0;
+  g('inWrap').className='in-wrap'+(v>=100?' active':'');
+  g('chips').className=v>0?'chips':'chips hidden';
+  if(v>0) st('costChip','ต้นทุน ฿'+fmt(v-PROFIT_MIN));
+  g('calcBtn').className='calc-btn '+(v>=100?'on':'off');
+  hide('resultSection'); hide('errBox');
+}
+
+// ===== MAIN CALC =====
+function doCalc(){
+  const v=parseFloat(g('ri').value)||0;
+  if(v<100) return;
+  currentRef=v;
+  const r=calc(v);
+  hide('errBox'); hide('resultSection');
+  if(!r){show('errBox'); return;}
+  currentResult=r;
+  defaultDiscPct=r.discPct;
+  currentDiscPct=r.discPct;
+  undoStack=[]; redoStack=[];
+  renderResult(r);
+  show('resultSection');
+  // Render strategy cards
+  renderStrategyCards(v);
+}
+
+function renderStrategyCards(ref){
+  const ranges=calcRange(ref);
+  const grid=g('stratGrid');
+  grid.innerHTML='';
+  ranges.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='sc '+item.cls+(i===1?' selected':'');
+    div.innerHTML=`<div class="sc-icon">${item.icon}</div>
+      <div class="sc-lbl">${item.lbl}</div>
+      <div class="sc-price">฿${fmtInt(item.sp)}</div>
+      <div class="sc-profit">กำไร ฿${fmt(item.profit)}</div>
+      <div class="sc-tag">${item.tag}</div>`;
+    div.onclick=()=>selectStrategy(item, div);
+    grid.appendChild(div);
+  });
+}
+
+function selectStrategy(item, el){
+  // Highlight selected
+  document.querySelectorAll('.sc').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  // Recalculate from this sp
+  const cost=currentRef-PROFIT_MIN;
+  const {fees,vat,recv,profit}=calcProfit(item.sp, cost);
+  const r={
+    ...currentResult,
+    sp:item.sp, full:item.full, disc:item.disc, discPct:item.discPct,
+    fees, vat, recv, profit,
+    marginPct:(profit/currentRef*100).toFixed(1),
+    f1:item.sp*0.0299, f2:item.sp*0.0642, f3:item.sp*0.0642
+  };
+  currentResult=r;
+  defaultDiscPct=r.discPct;
+  currentDiscPct=r.discPct;
+  undoStack=[]; redoStack=[];
+  renderResult(r);
+}
+
+function renderResult(r){
+  // Summary
+  const dd=discDisplay(r.sp, r.disc, r.discPct);
+  st('rFull','฿'+fmt(r.full));
+  st('dMain',dd.main); st('dAlt',dd.alt); st('dRule',dd.rule);
+  st('rSell','฿'+fmt(r.sp));
+  st('cpFullVal','฿'+fmtInt(r.full));
+  st('cpDiscVal',dd.main);
+  st('cpSellVal','฿'+fmtInt(r.sp));
+
+  // Slider
+  updateSlider(r.discPct);
+
+  // Summary section
+  st('sumSell','฿'+fmt(r.sp));
+  st('sumF1','-฿'+fmt(r.f1));
+  st('sumF2','-฿'+fmt(r.f2));
+  st('sumF3','-฿'+fmt(r.f3));
+  st('sumVat','฿'+fmt(r.vat));
+  st('sumRecvLabel','เงินร้านได้รับ (อ้างอิง ฿'+r.ref+')');
+  st('sumRecv','฿'+fmt(r.recv));
+
+  // Profit bar
+  const good=r.profit>=PROFIT_MIN;
+  g('profitBar').className='profit-bar '+(good?'good':'bad');
+  st('pbLabel',good?'✅ กำไรสุทธิ':'⚠️ กำไรต่ำกว่าเป้า');
+  st('pbCost','฿'+fmt(r.cost));
+  st('pbPct',r.marginPct+'% จากราคาอ้างอิง');
+  st('pbVal','฿'+fmt(r.profit));
+}
+
+// ===== SLIDER =====
+function updateSlider(pct){
+  currentDiscPct=pct;
+  g('discSlider').value=pct;
+  g('discSlider').style.setProperty('--pct',pct+'%');
+  st('slPct',pct+'%');
+  g('undoBtn').disabled=undoStack.length===0;
+  g('redoBtn').disabled=redoStack.length===0;
+  // Recalc from discount %
+  if(!currentResult) return;
+  const full=currentResult.full;
+  const sp=Math.round(full*(1-pct/100));
+  const cost=currentRef-PROFIT_MIN;
+  const {fees,vat,recv,profit}=calcProfit(sp,cost);
+  const disc=full-sp;
+  const marginPct=(profit/currentRef*100).toFixed(1);
+  const r={...currentResult, sp, disc, discPct:pct, fees, vat, recv, profit, marginPct,
+    f1:sp*0.0299, f2:sp*0.0642, f3:sp*0.0642};
+  // Update display without touching slider again
+  const dd=discDisplay(sp, disc, pct);
+  st('rFull','฿'+fmt(full));
+  st('dMain',dd.main); st('dAlt',dd.alt); st('dRule',dd.rule);
+  st('rSell','฿'+fmt(sp));
+  st('cpFullVal','฿'+fmtInt(full));
+  st('cpDiscVal',dd.main);
+  st('cpSellVal','฿'+fmtInt(sp));
+  st('sumSell','฿'+fmt(sp));
+  st('sumF1','-฿'+fmt(r.f1));
+  st('sumF2','-฿'+fmt(r.f2));
+  st('sumF3','-฿'+fmt(r.f3));
+  st('sumVat','฿'+fmt(vat));
+  st('sumRecv','฿'+fmt(recv));
+  const good=profit>=PROFIT_MIN;
+  g('profitBar').className='profit-bar '+(good?'good':'bad');
+  st('pbLabel',good?'✅ กำไรสุทธิ':'⚠️ กำไรต่ำกว่าเป้า');
+  st('pbCost','฿'+fmt(cost));
+  st('pbPct',marginPct+'% จากราคาอ้างอิง');
+  st('pbVal','฿'+fmt(profit));
+  currentResult=r;
+}
+
+function onSlider(val){
+  const prev=currentDiscPct;
+  undoStack.push(prev); redoStack=[];
+  updateSlider(parseInt(val));
+}
+
+function doUndo(){
+  if(!undoStack.length) return;
+  redoStack.push(currentDiscPct);
+  updateSlider(undoStack.pop());
+}
+function doRedo(){
+  if(!redoStack.length) return;
+  undoStack.push(currentDiscPct);
+  updateSlider(redoStack.pop());
+}
+function doResetDisc(){
+  undoStack.push(currentDiscPct); redoStack=[];
+  updateSlider(defaultDiscPct);
+}
+
+// ===== COPY =====
+function copyVal(type){
+  let txt='';
+  if(type==='full') txt=g('cpFullVal').textContent;
+  if(type==='disc') txt=g('cpDiscVal').textContent;
+  if(type==='sell') txt=g('cpSellVal').textContent;
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  const id=type==='full'?'cpFull':type==='disc'?'cpDisc':'cpSell';
+  g(id).classList.add('copied');
+  setTimeout(()=>g(id).classList.remove('copied'),1200);
+}
+
+// ===== RESET =====
+function doReset(){
+  g('ri').value=''; currentResult=null; currentRef=0;
+  hide('resultSection'); hide('errBox');
+  g('inWrap').className='in-wrap';
+  hide('chips');
+  g('calcBtn').className='calc-btn off';
+}
+
+// ===== TOOLS =====
+function refreshTools(){
+  if(!currentResult){
+    show('noDataWarn'); hide('toolsSection');
+  } else {
+    hide('noDataWarn'); show('toolsSection');
+    // Reset tool results
+    hide('beResult'); hide('vcResult');
+    g('beInput').value=''; g('vcInput').value='';
+    setCampaign('normal', g('cpTabs').firstElementChild);
+  }
+}
+
+// Break-even
+function calcBE(){
+  const goal=parseFloat(g('beInput').value)||0;
+  if(!goal||!currentResult) return;
+  const profit=currentResult.profit;
+  if(profit<=0) return;
+  const totalPcs=Math.ceil(goal/profit);
+  const perDay=(totalPcs/30).toFixed(1);
+  st('beGoal','฿'+fmt(goal));
+  st('beProfit','฿'+fmt(profit));
+  st('bePerDay',perDay+' ชิ้น');
+  st('beTotal',fmtInt(totalPcs)+' ชิ้น/เดือน');
+  st('beNote','📝 คำนวณจากกำไร ฿'+fmt(profit)+' ต่อชิ้น / ราคาขาย ฿'+fmt(currentResult.sp)+' / ราคาอ้างอิง ฿'+currentRef);
+  show('beResult');
+}
+
+// Voucher
+function calcVC(){
+  const v=parseFloat(g('vcInput').value)||0;
+  if(!v||!currentResult) return;
+  const r=currentResult;
+  const spAfter=r.sp-v;
+  if(spAfter<=0) return;
+  const cost=r.cost;
+  const {fees:feesA, vat:vatA, recv:recvA, profit:profitA}=calcProfit(spAfter,cost);
+  const marginBefore=(r.profit/currentRef*100).toFixed(1);
+  const marginAfter=(profitA/currentRef*100).toFixed(1);
+  st('vcSellBefore','฿'+fmt(r.sp));
+  st('vcSellAfter','฿'+fmt(spAfter));
+  st('vcFeeBefore','-฿'+fmt(r.fees));
+  st('vcFeeAfter','-฿'+fmt(feesA));
+  st('vcRecvLabel','เงินร้านได้รับ (อ้างอิง ฿'+currentRef+')');
+  st('vcRecvBefore','฿'+fmt(r.recv));
+  st('vcRecvAfter','฿'+fmt(recvA));
+  st('vcProfitBefore','฿'+fmt(r.profit)+' ('+marginBefore+'%)');
+  st('vcProfitAfter','฿'+fmt(profitA)+' ('+marginAfter+'%)');
+  const minSP=findSP(cost,PROFIT_MIN);
+  st('vcNote','📝 % คำนวณจากราคาอ้างอิง ฿'+currentRef+' / ราคาต่ำสุดที่ยังได้กำไร ฿'+PROFIT_MIN+' คือ ฿'+(minSP||'-'));
+  show('vcResult');
+}
+
+// Campaign
+const CAMPAIGN_MODES={
+  normal:{label:'ปกติ',spMult:1.0,desc:'ราคาขายปกติของร้านค่ะ'},
+  flash:{label:'⚡ Flash Sale',spMult:0.9,desc:'Flash Sale ลดได้ประมาณ 10% จากราคาปกติค่ะ'},
+  payday:{label:'💰 Payday',spMult:0.95,desc:'ช่วง Payday ลดเล็กน้อย 5% ดึงดูดลูกค้าค่ะ'},
+  '1111':{label:'🛒 11.11',spMult:0.85,desc:'แคมเปญใหญ่ 11.11 ลดได้ถึง 15% ยังมีกำไรค่ะ'},
+  '1212':{label:'🎉 12.12',spMult:0.82,desc:'แคมเปญสิ้นปี 12.12 ลดได้ถึง 18% ยังมีกำไรค่ะ'},
+};
+
+function setCampaign(mode, el){
+  document.querySelectorAll('.cpt').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  if(!currentResult){g('cpResult').innerHTML='<div class="no-data">ยังไม่มีข้อมูลราคาค่ะ</div>';return;}
+  const r=currentResult;
+  const cfg=CAMPAIGN_MODES[mode];
+  const cost=r.cost;
+  // หา selling price แนะนำในแคมเปญนี้ (จาก PSYCH list ที่ใกล้ spMult*sp มากที่สุด)
+  const target=r.sp*cfg.spMult;
+  let cpSP=PSYCH.reduce((a,b)=>Math.abs(b-target)<Math.abs(a-target)?b:a);
+  const {fees:cpFees,vat:cpVat,recv:cpRecv,profit:cpProfit}=calcProfit(cpSP,cost);
+  const marginBefore=(r.profit/currentRef*100).toFixed(1);
+  const marginAfter=(cpProfit/currentRef*100).toFixed(1);
+  const minSP=findSP(cost,PROFIT_MIN)||0;
+  const maxDiscPct=minSP?Math.round((r.full-minSP)/r.full*100):0;
+  const cpGood=cpProfit>=PROFIT_MIN;
+
+  g('cpResult').innerHTML=`
+    <table class="ba-table">
+      <tr><th>รายการ</th><th>ราคาปกติ</th><th>${cfg.label}</th></tr>
+      <tr><td>ราคาลูกค้าจ่าย</td><td>฿${fmt(r.sp)}</td><td>฿${fmt(cpSP)}</td></tr>
+      <tr><td>ค่าธรรมเนียม TikTok</td><td>-฿${fmt(r.fees)}</td><td>-฿${fmt(cpFees)}</td></tr>
+      <tr><td>เงินร้านได้รับ (อ้างอิง ฿${currentRef})</td><td>฿${fmt(r.recv)}</td><td>฿${fmt(cpRecv)}</td></tr>
+      <tr class="hi"><td>กำไรสุทธิ</td>
+        <td>฿${fmt(r.profit)} (${marginBefore}%)</td>
+        <td style="color:${cpGood?'#22c77a':'#ff5555'}">฿${fmt(cpProfit)} (${marginAfter}%)</td>
+      </tr>
+    </table>
+    <div class="note-box" style="border-left-color:#ff6b35;">
+      📝 ${cfg.desc}<br>
+      ราคาต่ำสุดที่ยังได้กำไร ฿${PROFIT_MIN} คือ <strong>฿${fmtInt(minSP)} (ลดได้สูงสุด ${maxDiscPct}%)</strong><br>
+      ถ้าต่ำกว่านี้กำไรต่ำกว่าเป้าค่ะ / % คำนวณจากราคาอ้างอิง ฿${currentRef}
+    </div>`;
+}
+
+// Init
+g('cpTabs').querySelectorAll('.cpt').forEach((el,i)=>{
+  if(i===0) el.classList.add('on');
+});
+</script>
+</body>
+</html>
